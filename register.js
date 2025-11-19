@@ -114,21 +114,32 @@ function validatePassword(password, confirmPassword) {
 }
 
 // ---------- ตรวจสอบว่า email / username ซ้ำใน table users หรือไม่ ----------
+// register.js - แก้ไขฟังก์ชันนี้
 async function checkDuplicateEmailUsername(email, username) {
   try {
+    console.log('Checking duplicate for:', { email, username }); // Debug log
+    
     const { data, error } = await supabase
       .from('users')
       .select('email, username')
       .or(`email.eq.${email},username.eq.${username}`)
       .limit(1);
 
+    // แสดง error detail เพื่อ debug
     if (error) {
       console.error('Check duplicate error:', error);
+      console.error('Error code:', error.code);
+      console.error('Error details:', error.details);
+      console.error('Error hint:', error.hint);
+      console.error('Error message:', error.message);
+      
       return {
         ok: false,
-        message: 'ไม่สามารถตรวจสอบ email / username ได้ กรุณาลองใหม่อีกครั้ง',
+        message: `ตรวจสอบไม่ได้: ${error.message}`,
       };
     }
+
+    console.log('Duplicate check result:', data); // Debug log
 
     if (!data || data.length === 0) {
       return { ok: true };
@@ -151,7 +162,7 @@ async function checkDuplicateEmailUsername(email, username) {
     console.error('Unexpected duplicate check error:', err);
     return {
       ok: false,
-      message: 'เกิดข้อผิดพลาดในการตรวจสอบข้อมูลซ้ำ กรุณาลองใหม่',
+      message: 'เกิดข้อผิดพลาด: ' + err.message,
     };
   }
 }
